@@ -16,14 +16,13 @@ from typing import List, Dict, Tuple
 import numpy as np
 
 from scripts.log_scrambler import produce_false_trace
+from whatthelog.definitions import PROJECT_ROOT
 from whatthelog.prefixtree.edge_properties import EdgeProperties
 from whatthelog.prefixtree.graph import Graph
 from whatthelog.prefixtree.prefix_tree_factory import PrefixTreeFactory
 from whatthelog.prefixtree.state import State
 from whatthelog.syntaxtree.syntax_tree import SyntaxTree
 from whatthelog.syntaxtree.syntax_tree_factory import SyntaxTreeFactory
-
-ROOT_DIR = os.path.dirname('requirements.txt')
 
 
 class MarkovChain:
@@ -69,7 +68,7 @@ class MarkovChain:
 
         self.initial_size = len(self.transitionMatrix)
 
-        print('[ markov.py ] - Chain ready.')
+        print('[ masm.py ] - Chain ready.')
 
     def generate_false_traces_from_prefix_tree(self, false_dir, amount: int = 50) -> None:
         """
@@ -79,9 +78,9 @@ class MarkovChain:
         :param false_dir: Specifies the directory in which the false traces should temporarily be stored.
         """
         self.pt = PrefixTreeFactory.get_prefix_tree(self.traces_dir, self.config_file)
-        print('[ markov.py ] - Generating false traces...')
+        print('[ masm.py ] - Generating false traces...')
         self.generate_false_traces(false_dir, amount)
-        print('[ markov.py ] - False traces generated')
+        print('[ masm.py ] - False traces generated')
         self.pt = None
 
     def generate_false_traces(self, false_dir, amount: int = 50) -> None:
@@ -190,7 +189,7 @@ class MarkovChain:
         """
         Trains the probabilities of the transition matrix based on a pre-specified set of log files.
         """
-        print('[ markov.py ] - Start training using multiprocessing...')
+        print('[ masm.py ] - Start training using multiprocessing...')
 
         a_pool = multiprocessing.Pool()
         matrix = None
@@ -204,16 +203,16 @@ class MarkovChain:
         a_pool.close()
         a_pool.join()
         self.transitionMatrix = matrix
-        print('[ markov.py ] - Training done.')
+        print('[ masm.py ] - Training done.')
 
-        print('[ markov.py ] - Start Normalizing...')
+        print('[ masm.py ] - Start Normalizing...')
         for i in range(len(self.transitionMatrix)):
             row = self.transitionMatrix[i]
             s = sum(row)
             if s > 0:
                 for a in range(len(row)):
                     self.transitionMatrix[i][a] /= s
-        print('[ markov.py ] - Normalizing done.')
+        print('[ masm.py ] - Normalizing done.')
 
         # Delete the unreachable states
         self.delete_unreachable()
@@ -386,7 +385,7 @@ class MarkovChain:
 
         return specificity, recall, precision
 
-    def get_candidates(self, threshold: float = 0.0) -> List[list[int]]:
+    def get_candidates(self, threshold: float = 0.0) -> List[List[int]]:
         """
         Retrieves all candidates based on a threshold.
         :param threshold: The threshold of which candidates can converge from the requirements.
@@ -401,7 +400,7 @@ class MarkovChain:
             return result
 
         assert self.random_candidates is False
-        
+
         # Duplicate rows
         candidates = list(map(lambda x: sorted(x), self.find_duplicates(threshold)))
         # Duplicate columns
@@ -518,9 +517,9 @@ class MarkovChain:
         Selects random true traces on which the model will be evaluated.
         :param true_test_dir: the directory which contains true traces.
         """
-        print('[ markov.py ] - Start selecting true traces...')
+        print('[ masm.py ] - Start selecting true traces...')
         self.true_traces = self.shorten_eval_traces_and_store_in_memory(true_test_dir)
-        print('[ markov.py ] - Selecting true traces done.')
+        print('[ masm.py ] - Selecting true traces done.')
 
     def shorten_eval_traces_and_store_in_memory(self, directory: str) -> List[List[str]]:
         """
@@ -567,27 +566,27 @@ class MarkovChain:
             with open(self.eval_file, 'a') as evalfile:
                 evalfile.write('<tr><td>' + str(amount) + '</td>')
                 evalfile.write('<td>' + str(timedelta(seconds=time() - start_time).seconds) + '.' +
-                           str(timedelta(seconds=time() - start_time).microseconds) + '</td></tr>\n')
+                               str(timedelta(seconds=time() - start_time).microseconds) + '</td></tr>\n')
 
 
 def move_folds(all_log, test, source_dir, train_dir, test_dir):
-    if os.path.exists(os.path.join(ROOT_DIR, test_dir)):
-        shutil.rmtree(os.path.join(ROOT_DIR, test_dir))
-    os.mkdir(os.path.join(ROOT_DIR, test_dir))
+    if os.path.exists(os.path.join(PROJECT_ROOT, test_dir)):
+        shutil.rmtree(os.path.join(PROJECT_ROOT, test_dir))
+    os.mkdir(os.path.join(PROJECT_ROOT, test_dir))
     for file in test:
-        shutil.copy(os.path.join(ROOT_DIR, source_dir, file),
-                    os.path.join(os.path.join(ROOT_DIR, test_dir, file)))
+        shutil.copy(os.path.join(PROJECT_ROOT, source_dir, file),
+                    os.path.join(os.path.join(PROJECT_ROOT, test_dir, file)))
 
-    if os.path.exists(os.path.join(ROOT_DIR, train_dir)):
-        shutil.rmtree(os.path.join(ROOT_DIR, train_dir))
-    os.mkdir(os.path.join(ROOT_DIR, train_dir))
+    if os.path.exists(os.path.join(PROJECT_ROOT, train_dir)):
+        shutil.rmtree(os.path.join(PROJECT_ROOT, train_dir))
+    os.mkdir(os.path.join(PROJECT_ROOT, train_dir))
 
     train_files = set(all_log) - set(test)
     assert len(train_files) == 800
 
     for file in train_files:
-        shutil.copy(os.path.join(ROOT_DIR, source_dir, file),
-                    os.path.join(os.path.join(ROOT_DIR, train_dir, file)))
+        shutil.copy(os.path.join(PROJECT_ROOT, source_dir, file),
+                    os.path.join(os.path.join(PROJECT_ROOT, train_dir, file)))
 
 
 if __name__ == '__main__':
@@ -604,7 +603,7 @@ if __name__ == '__main__':
             random.seed(seed)
             for j in range(5):
                 # Create train and test set
-                all_logs = os.listdir(os.path.join(ROOT_DIR, 'resources/traces' + str(j + 1) + '/'))
+                all_logs = os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/'))
                 split_logs = np.array_split(all_logs, 5)  # 5 folds for k-fold cross validation
                 for test_set in split_logs:
                     move_folds(all_logs, test_set, source_dir='resources/traces' + str(j + 1) + '/',
@@ -612,10 +611,10 @@ if __name__ == '__main__':
                     print('current progress accuracy:', j + 1, '/ 10, and', index + 1, '/ 5')
 
                     start_time = time()
-                    chain = MarkovChain(os.path.join(ROOT_DIR, 'resources/train_files/'),
-                                        eval_file=os.path.join(ROOT_DIR, 'out/eval/accuracy_results_cross'))
-                    chain.run_test(true_test_dir=os.path.join(ROOT_DIR, 'resources/test_files/'),
-                                   false_dir=os.path.join(ROOT_DIR, 'out/false_traces/'),
+                    chain = MarkovChain(os.path.join(PROJECT_ROOT, 'resources/train_files/'),
+                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/accuracy_results_cross'))
+                    chain.run_test(true_test_dir=os.path.join(PROJECT_ROOT, 'resources/test_files/'),
+                                   false_dir=os.path.join(PROJECT_ROOT, 'out/false_traces/'),
                                    store_intermediate=True)
 
     elif sys.argv[1].split('=')[1] == 'runtime':
@@ -626,38 +625,42 @@ if __name__ == '__main__':
                     print('current progress runtime:', j + take + 1, '/ 10, and', index + 1, '/ 5')
 
                     # Selecting random training files
-                    if os.path.exists(os.path.join(ROOT_DIR, 'resources/train_files/')):
-                        shutil.rmtree(os.path.join(ROOT_DIR, 'resources/train_files/'))
-                    os.mkdir(os.path.join(ROOT_DIR, 'resources/train_files/'))
+                    if os.path.exists(os.path.join(PROJECT_ROOT, 'resources/train_files/')):
+                        shutil.rmtree(os.path.join(PROJECT_ROOT, 'resources/train_files/'))
+                    os.mkdir(os.path.join(PROJECT_ROOT, 'resources/train_files/'))
                     for number in range(length):
-                        shutil.copy(os.path.join(ROOT_DIR, 'resources/traces/',
-                                                 os.listdir(os.path.join(ROOT_DIR, 'resources/traces/'))
+                        shutil.copy(os.path.join(PROJECT_ROOT, 'resources/traces/',
+                                                 os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces/'))
                                                  [random.randint(0, len(
-                                                     os.listdir(os.path.join(ROOT_DIR, 'resources/traces/'))) - 1)]),
-                                    os.path.join(os.path.join(ROOT_DIR, 'resources/train_files/trace' + str(number))))
+                                                     os.listdir(
+                                                         os.path.join(PROJECT_ROOT, 'resources/traces/'))) - 1)]),
+                                    os.path.join(
+                                        os.path.join(PROJECT_ROOT, 'resources/train_files/trace' + str(number))))
 
                     # Selecting random test files
-                    if os.path.exists(os.path.join(ROOT_DIR, 'resources/test_files/')):
-                        shutil.rmtree(os.path.join(ROOT_DIR, 'resources/test_files/'))
-                    os.mkdir(os.path.join(ROOT_DIR, 'resources/test_files/'))
+                    if os.path.exists(os.path.join(PROJECT_ROOT, 'resources/test_files/')):
+                        shutil.rmtree(os.path.join(PROJECT_ROOT, 'resources/test_files/'))
+                    os.mkdir(os.path.join(PROJECT_ROOT, 'resources/test_files/'))
                     for number in range(length):
-                        shutil.copy(os.path.join(ROOT_DIR, 'resources/traces/',
-                                                 os.listdir(os.path.join(ROOT_DIR, 'resources/traces/'))
+                        shutil.copy(os.path.join(PROJECT_ROOT, 'resources/traces/',
+                                                 os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces/'))
                                                  [random.randint(0, len(
-                                                     os.listdir(os.path.join(ROOT_DIR, 'resources/traces/'))) - 1)]),
-                                    os.path.join(os.path.join(ROOT_DIR, 'resources/test_files/trace' + str(number))))
+                                                     os.listdir(
+                                                         os.path.join(PROJECT_ROOT, 'resources/traces/'))) - 1)]),
+                                    os.path.join(
+                                        os.path.join(PROJECT_ROOT, 'resources/test_files/trace' + str(number))))
 
                     start_time = time()
-                    chain = MarkovChain(os.path.join(ROOT_DIR, 'resources/train_files/'),
-                                        eval_file=os.path.join(ROOT_DIR, 'out/eval/runtime_results_cross'))
-                    chain.run_test(true_test_dir=os.path.join(ROOT_DIR, 'resources/test_files/'),
-                                   false_dir=os.path.join(ROOT_DIR, 'out/false_traces/'))
+                    chain = MarkovChain(os.path.join(PROJECT_ROOT, 'resources/train_files/'),
+                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/runtime_results_cross'))
+                    chain.run_test(true_test_dir=os.path.join(PROJECT_ROOT, 'resources/test_files/'),
+                                   false_dir=os.path.join(PROJECT_ROOT, 'out/false_traces/'))
     elif sys.argv[1].split('=')[1] == 'random':
         for index, seed in enumerate([5, 6, 7]):
             random.seed(seed)
             for j in range(5):
                 # Create train and test set
-                all_logs = os.listdir(os.path.join(ROOT_DIR, 'resources/traces' + str(j + 1) + '/'))
+                all_logs = os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/'))
                 split_logs = np.array_split(all_logs, 5)  # 5 folds for k-fold cross validation
                 for test_set in split_logs:
                     move_folds(all_logs, test_set, source_dir='resources/traces' + str(j + 1) + '/',
@@ -665,12 +668,12 @@ if __name__ == '__main__':
                     print('current progress accuracy:', j + 1, '/ 5, and', index + 1, '/ 3')
 
                     start_time = time()
-                    chain = MarkovChain(os.path.join(ROOT_DIR, 'resources/train_files/'),
-                                        eval_file=os.path.join(ROOT_DIR, 'out/eval/random_results_cross'),
+                    chain = MarkovChain(os.path.join(PROJECT_ROOT, 'resources/train_files/'),
+                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/random_results_cross'),
                                         random_candidates=True)
 
-                    chain.run_test(true_test_dir=os.path.join(ROOT_DIR, 'resources/test_files/'),
-                                   false_dir=os.path.join(ROOT_DIR, 'out/false_traces/'),
+                    chain.run_test(true_test_dir=os.path.join(PROJECT_ROOT, 'resources/test_files/'),
+                                   false_dir=os.path.join(PROJECT_ROOT, 'out/false_traces/'),
                                    store_intermediate=True)
     else:
         print('Operation not recognized')
