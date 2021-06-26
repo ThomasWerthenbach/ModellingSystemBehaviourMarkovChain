@@ -41,7 +41,9 @@ class MarkovChain:
         self.random_candidates = random_candidates
 
         self.eval_file = eval_file
-        if eval_file and not os.path.exists(eval_file):
+        if eval_file:
+            if os.path.exists(eval_file):
+                os.remove(eval_file)
             with open(eval_file, 'w+') as open_file:
                 open_file.write('')
 
@@ -598,6 +600,13 @@ if __name__ == '__main__':
               '                     TYPE can be either: ''accuracy'', ''runtime'', or ''random.\n')
         sys.exit(0)
 
+    if not os.path.exists(os.path.join(PROJECT_ROOT, 'out/')):
+        os.mkdir(os.path.join(PROJECT_ROOT, 'out/'))
+    if not os.path.exists(os.path.join(PROJECT_ROOT, 'out/eval')):
+        os.mkdir(os.path.join(PROJECT_ROOT, 'out/eval'))
+    if not os.path.exists(os.path.join(PROJECT_ROOT, 'out/false_traces')):
+        os.mkdir(os.path.join(PROJECT_ROOT, 'out/false_traces'))
+
     if sys.argv[1].split('=')[1] == 'accuracy':
         for index, seed in enumerate([5, 6, 7]):
             random.seed(seed)
@@ -612,7 +621,8 @@ if __name__ == '__main__':
 
                     start_time = time()
                     chain = MarkovChain(os.path.join(PROJECT_ROOT, 'resources/train_files/'),
-                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/accuracy_results_cross'))
+                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/accuracy_results'),
+                                        config_file=os.path.join(PROJECT_ROOT, 'resources/config.json'))
                     chain.run_test(true_test_dir=os.path.join(PROJECT_ROOT, 'resources/test_files/'),
                                    false_dir=os.path.join(PROJECT_ROOT, 'out/false_traces/'),
                                    store_intermediate=True)
@@ -652,7 +662,8 @@ if __name__ == '__main__':
 
                     start_time = time()
                     chain = MarkovChain(os.path.join(PROJECT_ROOT, 'resources/train_files/'),
-                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/runtime_results_cross'))
+                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/runtime_results'),
+                                        config_file=os.path.join(PROJECT_ROOT, 'resources/config.json'))
                     chain.run_test(true_test_dir=os.path.join(PROJECT_ROOT, 'resources/test_files/'),
                                    false_dir=os.path.join(PROJECT_ROOT, 'out/false_traces/'))
     elif sys.argv[1].split('=')[1] == 'random':
@@ -669,7 +680,8 @@ if __name__ == '__main__':
 
                     start_time = time()
                     chain = MarkovChain(os.path.join(PROJECT_ROOT, 'resources/train_files/'),
-                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/random_results_cross'),
+                                        eval_file=os.path.join(PROJECT_ROOT, 'out/eval/random_results'),
+                                        config_file=os.path.join(PROJECT_ROOT, 'resources/config.json'),
                                         random_candidates=True)
 
                     chain.run_test(true_test_dir=os.path.join(PROJECT_ROOT, 'resources/test_files/'),

@@ -75,6 +75,8 @@ resources/prefixtree.png
 resources/Results.xlsx
 resources/prefix_tree.pickle
 resources/data/
+resources/test_files/
+resources/train_files/
 
 # Temporary Files
 temp/
