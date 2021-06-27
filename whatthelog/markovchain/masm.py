@@ -41,9 +41,7 @@ class MarkovChain:
         self.random_candidates = random_candidates
 
         self.eval_file = eval_file
-        if eval_file:
-            if os.path.exists(eval_file):
-                os.remove(eval_file)
+        if eval_file and not os.path.exists(eval_file):
             with open(eval_file, 'w+') as open_file:
                 open_file.write('')
 
@@ -628,8 +626,8 @@ if __name__ == '__main__':
                                    store_intermediate=True)
 
     elif sys.argv[1].split('=')[1] == 'runtime':
+        random.seed(5)
         for index, length in enumerate([100, 250, 500, 750, 1000]):
-            random.seed(5)
             for j in range(5):
                 for take in range(2):  # Twice for every dataset.
                     print('current progress runtime:', j + take + 1, '/ 10, and', index + 1, '/ 5')
@@ -639,11 +637,10 @@ if __name__ == '__main__':
                         shutil.rmtree(os.path.join(PROJECT_ROOT, 'resources/train_files/'))
                     os.mkdir(os.path.join(PROJECT_ROOT, 'resources/train_files/'))
                     for number in range(length):
-                        shutil.copy(os.path.join(PROJECT_ROOT, 'resources/traces/',
-                                                 os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces/'))
-                                                 [random.randint(0, len(
-                                                     os.listdir(
-                                                         os.path.join(PROJECT_ROOT, 'resources/traces/'))) - 1)]),
+                        shutil.copy(os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/',
+                                                 os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/'))
+                                                 [random.randint(0, len(os.listdir(
+                                                         os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/'))) - 1)]),
                                     os.path.join(
                                         os.path.join(PROJECT_ROOT, 'resources/train_files/trace' + str(number))))
 
@@ -652,11 +649,10 @@ if __name__ == '__main__':
                         shutil.rmtree(os.path.join(PROJECT_ROOT, 'resources/test_files/'))
                     os.mkdir(os.path.join(PROJECT_ROOT, 'resources/test_files/'))
                     for number in range(length):
-                        shutil.copy(os.path.join(PROJECT_ROOT, 'resources/traces/',
-                                                 os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces/'))
-                                                 [random.randint(0, len(
-                                                     os.listdir(
-                                                         os.path.join(PROJECT_ROOT, 'resources/traces/'))) - 1)]),
+                        shutil.copy(os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/',
+                                                 os.listdir(os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/'))
+                                                 [random.randint(0, len(os.listdir(
+                                                         os.path.join(PROJECT_ROOT, 'resources/traces' + str(j + 1) + '/'))) - 1)]),
                                     os.path.join(
                                         os.path.join(PROJECT_ROOT, 'resources/test_files/trace' + str(number))))
 
